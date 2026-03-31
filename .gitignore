@@ -1,0 +1,10 @@
+.env
+*.env
+__pycache__/
+.venv/
+node_modules/
+.next/
+.coverage
+brain_OC/.obsidian/workspace.json
+brain_OC/.obsidian/plugins/
+.DS_Store

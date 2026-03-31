@@ -1,0 +1,140 @@
+version: "3.9"
+
+services:
+  # ─── Base de datos ───────────────────────────────────────────────────────────
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: openclinica_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: openclinica
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme}
+      POSTGRES_DB: openclinica
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/01_init.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U openclinica"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Cache & Queue ───────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: openclinica_redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Object Storage ──────────────────────────────────────────────────────────
+  minio:
+    image: minio/minio:latest
+    container_name: openclinica_minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+
+  # ─── Backend API ─────────────────────────────────────────────────────────────
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: openclinica_api
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://openclinica:${DB_PASSWORD:-changeme}@db:5432/openclinica
+      REDIS_URL: redis://redis:6379/0
+      MINIO_ENDPOINT: minio:9000
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  # ─── Celery Worker ───────────────────────────────────────────────────────────
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: openclinica_worker
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://openclinica:${DB_PASSWORD:-changeme}@db:5432/openclinica
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      - api
+      - redis
+    volumes:
+      - ./backend:/app
+    command: celery -A workers.celery_app worker --loglevel=info --concurrency=4
+
+  # ─── Frontend ─────────────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: openclinica_frontend
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+
+  # ─── n8n Árbol de Agentes ────────────────────────────────────────────────────
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: openclinica_n8n
+    restart: unless-stopped
+    environment:
+      N8N_BASIC_AUTH_ACTIVE: "true"
+      N8N_BASIC_AUTH_USER: ${N8N_BASIC_AUTH_USER:-admin}
+      N8N_BASIC_AUTH_PASSWORD: ${N8N_BASIC_AUTH_PASSWORD:-changeme}
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: db
+      DB_POSTGRESDB_DATABASE: openclinica
+      DB_POSTGRESDB_USER: openclinica
+      DB_POSTGRESDB_PASSWORD: ${DB_PASSWORD:-changeme}
+    ports:
+      - "5678:5678"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./n8n/workflows:/home/node/.n8n/workflows
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  n8n_data:
