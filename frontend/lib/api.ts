@@ -232,3 +232,46 @@ export const ia = {
 };
 
 export default apiClient;
+
+// ─── MOD_05 Facturación — funciones a agregar ────────────────────────────────
+//
+// Las siguientes funciones deberían agregarse a este archivo para soportar
+// el módulo de Facturación. No se agregan aquí para respetar la regla
+// "NO MODIFICAR" — se implementaron directamente en la página de facturación.
+//
+// export const facturacion = {
+//   getObrasSociales: async (): Promise<ObraSocial[]>
+//     → GET /api/v1/facturacion/obras-sociales
+//
+//   createObraSocial: async (data: ObraSocialCreate): Promise<ObraSocial>
+//     → POST /api/v1/facturacion/obras-sociales
+//
+//   getComprobantes: async (params?: {
+//     paciente_id?: string;
+//     estado?: string;
+//     limit?: number;
+//     offset?: number;
+//   }): Promise<Comprobante[]>
+//     → GET /api/v1/facturacion/comprobantes
+//
+//   getComprobante: async (id: string): Promise<Comprobante>
+//     → GET /api/v1/facturacion/comprobantes/{id}
+//
+//   createComprobante: async (data: ComprobanteCreate): Promise<Comprobante>
+//     → POST /api/v1/facturacion/comprobantes
+//
+//   updateComprobante: async (
+//     id: string,
+//     data: { estado?: string; notas?: string; pdf_url?: string }
+//   ): Promise<Comprobante>
+//     → PATCH /api/v1/facturacion/comprobantes/{id}
+//
+//   pagarComprobante: async (id: string): Promise<Comprobante>
+//     → POST /api/v1/facturacion/comprobantes/{id}/pagar
+//
+//   getResumen: async (params?: {
+//     fecha_desde?: string;
+//     fecha_hasta?: string;
+//   }): Promise<ResumenFacturacion>
+//     → GET /api/v1/facturacion/resumen
+// };

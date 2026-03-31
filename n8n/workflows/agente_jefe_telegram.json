@@ -1,0 +1,118 @@
+{
+  "name": "OpenClinicIA — Agente Jefe Telegram",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": ["message"],
+        "additionalFields": {}
+      },
+      "id": "telegram-trigger",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [200, 300],
+      "credentials": {
+        "telegramApi": { "id": "telegram-creds", "name": "Telegram Bot" }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.OPENCLINICA_API_URL}}/api/v1/agentes/webhook/telegram",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "X-N8N-Secret", "value": "={{$env.N8N_WEBHOOK_SECRET}}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "chat_id", "value": "={{$json.message.chat.id}}" },
+            { "name": "message_id", "value": "={{$json.message.message_id}}" },
+            { "name": "texto", "value": "={{$json.message.text}}" },
+            { "name": "usuario_telegram", "value": "={{$json.message.from.username ?? $json.message.from.first_name}}" },
+            { "name": "fecha", "value": "={{$json.message.date}}" }
+          ]
+        },
+        "options": { "timeout": 30000 }
+      },
+      "id": "call-api",
+      "name": "Llamar API OpenClinicIA",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [420, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": false },
+          "conditions": [
+            {
+              "id": "check-success",
+              "leftValue": "={{$json.exito}}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "equals" }
+            }
+          ]
+        }
+      },
+      "id": "check-success",
+      "name": "Verificar Éxito",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [530, 300]
+    },
+    {
+      "parameters": {
+        "chatId": "={{$('Telegram Trigger').item.json.message.chat.id}}",
+        "text": "={{$json.mensaje}}",
+        "additionalFields": { "parse_mode": "Markdown" }
+      },
+      "id": "telegram-send",
+      "name": "Responder en Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [640, 300],
+      "credentials": {
+        "telegramApi": { "id": "telegram-creds", "name": "Telegram Bot" }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{$('Telegram Trigger').item.json.message.chat.id}}",
+        "text": "⚠️ Ocurrió un error procesando tu solicitud. Por favor intentá de nuevo.",
+        "additionalFields": {}
+      },
+      "id": "telegram-error",
+      "name": "Responder Error",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [640, 450],
+      "credentials": {
+        "telegramApi": { "id": "telegram-creds", "name": "Telegram Bot" }
+      }
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [[{"node": "Llamar API OpenClinicIA", "type": "main", "index": 0}]]
+    },
+    "Llamar API OpenClinicIA": {
+      "main": [[{"node": "Verificar Éxito", "type": "main", "index": 0}]]
+    },
+    "Verificar Éxito": {
+      "main": [
+        [{"node": "Responder en Telegram", "type": "main", "index": 0}],
+        [{"node": "Responder Error", "type": "main", "index": 0}]
+      ]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "versionId": "2.0.0",
+  "meta": { "instanceId": "openclinica-local" },
+  "id": "agente-jefe-telegram",
+  "tags": ["telegram", "agentes", "ia", "openclinica"]
+}

@@ -124,6 +124,10 @@ services:
       DB_POSTGRESDB_DATABASE: openclinica
       DB_POSTGRESDB_USER: openclinica
       DB_POSTGRESDB_PASSWORD: ${DB_PASSWORD:-changeme}
+      N8N_WEBHOOK_SECRET: ${N8N_WEBHOOK_SECRET}
+      OPENCLINICA_API_URL: http://api:8000
+      INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN}
+      TELEGRAM_CLINIC_CHAT_ID: ${TELEGRAM_CLINIC_CHAT_ID:-}
     ports:
       - "5678:5678"
     depends_on:

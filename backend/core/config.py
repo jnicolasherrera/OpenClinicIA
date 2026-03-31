@@ -21,6 +21,16 @@ class Settings(BaseSettings):
     # Anthropic
     ANTHROPIC_API_KEY: str = ""
 
+    # OpenAI / Whisper
+    OPENAI_API_KEY: str = ""
+    WHISPER_MODEL: str = "whisper-1"
+
+    # Telegram + n8n (MOD_06)
+    TELEGRAM_BOT_TOKEN: str = ""
+    N8N_WEBHOOK_SECRET: str = ""
+    N8N_BASE_URL: str = "http://n8n:5678"
+    INTERNAL_API_TOKEN: str = ""
+
     # CORS
     CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:5173"]
 

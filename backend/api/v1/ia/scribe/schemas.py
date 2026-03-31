@@ -1,5 +1,7 @@
 """Schemas Pydantic para el módulo de scribe (documentación clínica con IA)."""
 
+from typing import Optional
+
 from pydantic import BaseModel, model_validator
 
 
@@ -46,3 +48,39 @@ class TranscripcionTaskResponse(BaseModel):
     task_id: str
     status: str = "queued"
     message: str = "Transcripción encolada correctamente"
+
+
+class TranscripcionRequest(BaseModel):
+    """Solicitud de transcripción de audio."""
+
+    audio_url: Optional[str] = None
+    episodio_id: Optional[str] = None
+    contexto: Optional[str] = None
+
+
+class TranscripcionResponse(BaseModel):
+    """Respuesta de una solicitud de transcripción."""
+
+    task_id: Optional[str] = None
+    transcripcion: Optional[str] = None
+    estado: str  # "completado", "procesando", "error"
+    mensaje: Optional[str] = None
+
+
+class PipelineScribeRequest(BaseModel):
+    """Request para el pipeline completo: audio → transcripción → SOAP."""
+
+    audio_url: Optional[str] = None
+    transcripcion_texto: Optional[str] = None
+    episodio_id: str
+    contexto_paciente: Optional[str] = None
+    ejecutar_async: bool = False  # True = Celery task, False = sync
+
+
+class PipelineScribeResponse(BaseModel):
+    """Respuesta del pipeline completo de scribe."""
+
+    task_id: Optional[str] = None  # presente si ejecutar_async=True
+    transcripcion: Optional[str] = None
+    soap: Optional[SOAPResponse] = None  # presente si completado
+    estado: str

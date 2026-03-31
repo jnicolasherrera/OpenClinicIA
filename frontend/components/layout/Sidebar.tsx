@@ -12,6 +12,7 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  Receipt,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -40,6 +41,11 @@ const navItems = [
     label: "IA Triaje",
     href: "/triaje",
     icon: Brain,
+  },
+  {
+    label: "Facturación",
+    href: "/facturacion",
+    icon: Receipt,
   },
 ];
 
