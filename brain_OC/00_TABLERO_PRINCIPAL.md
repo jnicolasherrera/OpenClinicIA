@@ -49,18 +49,21 @@ Plataforma integral **open-source** para la gestión clínica con Inteligencia A
 
 | Módulo | Estado | Notas |
 |--------|--------|-------|
-| Vault brain_OC | 🟢 Activo | Este documento |
+| Vault brain_OC | 🟢 Activo | Documentación completa |
 | Repo GitHub público | 🟢 Creado | MIT · jnicolasherrera/OpenClinicIA |
 | Docker Compose base | 🟢 Creado | Stack completo local |
 | CI/CD GitHub Actions | 🟢 Creado | lint + test en cada PR |
-| MOD_01 Agenda | 🔲 Pendiente | Primer módulo a desarrollar |
-| MOD_02 EHR | 🔲 Pendiente | |
-| MOD_03 Ambient Scribe | 🔲 Pendiente | |
-| MOD_04 Triaje IA | 🔲 Pendiente | |
-| MOD_05 Facturación | 🔲 Pendiente | |
-| MOD_06 Árbol Agentes n8n | 🔲 Pendiente | |
-| Backend FastAPI base | 🔲 Pendiente | Próxima sesión |
-| Frontend Next.js base | 🔲 Pendiente | |
+| Backend FastAPI base | 🟢 Completado | main.py, core/, models/, api/v1/ |
+| Frontend Next.js base | 🟢 Completado | App Router, Tailwind, Shadcn/UI |
+| DB Schema + Migraciones | 🟢 Completado | Alembic, RLS, pgvector ready |
+| MOD_01 Agenda | 🟡 En progreso | CRUD turnos + sala de espera |
+| MOD_02 EHR | 🟡 En progreso | Episodios + historia clínica básica |
+| MOD_03 Ambient Scribe | 🟡 En progreso | SOAP generator con Claude API |
+| MOD_04 Triaje IA | 🟡 En progreso | Clasificación urgencia ESI con Claude Haiku |
+| MOD_05 Facturación | 🔲 Pendiente | Próxima fase |
+| MOD_06 Árbol Agentes n8n | 🔲 Pendiente | Próxima fase |
+| MOD_07 Laboratorio | 🔲 Pendiente | |
+| MOD_08 Telemedicina | 🔲 Pendiente | |
 
 ---
 
@@ -86,4 +89,4 @@ Plataforma integral **open-source** para la gestión clínica con Inteligencia A
 
 ---
 
-*Última actualización: 2026-03-31*
+*Última actualización: 2026-03-30*

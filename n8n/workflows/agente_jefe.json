@@ -1,0 +1,67 @@
+{
+  "name": "OpenClinicIA — Agente Jefe",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "agente-jefe",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "model": "claude-haiku-4-5-20251001",
+        "messages": {
+          "values": [
+            {
+              "content": "=Sos el Agente Jefe de OpenClinicIA. Recibís una solicitud y decidís qué agente especializado activar.\n\nSolicitud: {{ $json.solicitud }}\nContexto: {{ $json.contexto }}\n\nAgentes disponibles:\n- agente_agenda: para turnos, disponibilidad, sala de espera\n- agente_historia: para historia clínica, episodios, diagnósticos\n- agente_triaje: para clasificación de urgencia\n- agente_scribe: para transcripción y notas SOAP\n\nResponde en JSON: {\"agente\": \"nombre_agente\", \"razonamiento\": \"...\", \"parametros\": {}}",
+              "role": "user"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "claude-router",
+      "name": "Claude Router",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}"
+      },
+      "id": "response-node",
+      "name": "Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [680, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [[{"node": "Claude Router", "type": "main", "index": 0}]]
+    },
+    "Claude Router": {
+      "main": [[{"node": "Response", "type": "main", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1.0.0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "openclinica-local"
+  },
+  "id": "agente-jefe-workflow",
+  "tags": ["ia", "agentes", "openclinica"]
+}

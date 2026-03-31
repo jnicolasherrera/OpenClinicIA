@@ -1,45 +1,48 @@
-"""Utilidades de seguridad: JWT, hashing de contraseñas."""
+"""Utilidades de seguridad: JWT, hashing de contrasenas."""
 
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
+import bcrypt
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 
 from core.config import settings
 from core.logging import get_logger
 
 logger = get_logger(__name__)
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-_REFRESH_TOKEN_TYPE = "refresh"
-_ACCESS_TOKEN_TYPE = "access"
-
 
 def get_password_hash(password: str) -> str:
-    """Genera el hash bcrypt de una contraseña en texto plano.
+    """Genera el hash bcrypt de una contrasena en texto plano.
 
     Args:
-        password: Contraseña en texto plano.
+        password: Contrasena en texto plano (max. 72 bytes para bcrypt).
 
     Returns:
-        Hash bcrypt de la contraseña.
+        Hash bcrypt de la contrasena como cadena UTF-8.
     """
-    return pwd_context.hash(password)
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verifica que una contraseña en texto plano coincida con su hash.
+    """Verifica que una contrasena en texto plano coincida con su hash.
 
     Args:
-        plain_password: Contraseña en texto plano provista por el usuario.
+        plain_password: Contrasena en texto plano provista por el usuario.
         hashed_password: Hash almacenado en la base de datos.
 
     Returns:
-        True si la contraseña es válida, False en caso contrario.
+        True si la contrasena es valida, False en caso contrario.
     """
-    return pwd_context.verify(plain_password, hashed_password)
+    return bcrypt.checkpw(
+        plain_password.encode("utf-8"),
+        hashed_password.encode("utf-8"),
+    )
+
+
+_REFRESH_TOKEN_TYPE = "refresh"
+_ACCESS_TOKEN_TYPE = "access"
 
 
 def create_access_token(
@@ -50,8 +53,8 @@ def create_access_token(
 
     Args:
         data: Payload a incluir en el token.
-        expires_delta: Tiempo de expiración personalizado. Si es None,
-            usa ACCESS_TOKEN_EXPIRE_MINUTES de la configuración.
+        expires_delta: Tiempo de expiracion personalizado. Si es None,
+            usa ACCESS_TOKEN_EXPIRE_MINUTES de la configuracion.
 
     Returns:
         Token JWT como cadena.
@@ -70,7 +73,7 @@ def create_refresh_token(subject: str) -> str:
     """Genera un JWT de refresh para el sujeto indicado.
 
     Args:
-        subject: Identificador único del usuario (normalmente su UUID como str).
+        subject: Identificador unico del usuario (normalmente su UUID como str).
 
     Returns:
         Token JWT de refresh como cadena.
@@ -96,7 +99,7 @@ def decode_token(token: str) -> dict[str, Any]:
         Payload decodificado como diccionario.
 
     Raises:
-        JWTError: Si el token es inválido, expirado o la firma no coincide.
+        JWTError: Si el token es invalido, expirado o la firma no coincide.
     """
     try:
         payload: dict[str, Any] = jwt.decode(
@@ -104,5 +107,5 @@ def decode_token(token: str) -> dict[str, Any]:
         )
         return payload
     except JWTError as exc:
-        logger.warning("Token JWT inválido", extra={"error": str(exc)})
+        logger.warning("Token JWT invalido", extra={"error": str(exc)})
         raise

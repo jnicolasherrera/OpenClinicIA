@@ -183,11 +183,23 @@ class TurnoRepository:
         turnos = list(result.scalars().all())
 
         # Filtrar los que realmente se superponen
-        from datetime import timedelta as td
+        from datetime import timedelta as td, timezone as tz
+
+        def _make_aware(dt):
+            """Normaliza datetime a UTC aware para comparaciones seguras."""
+            if dt is None:
+                return dt
+            if dt.tzinfo is None:
+                return dt.replace(tzinfo=tz.utc)
+            return dt
+
+        fh_aware = _make_aware(fecha_hora)
+        fp_aware = _make_aware(fin_propuesto)
 
         solapados = []
         for t in turnos:
-            fin_existente = t.fecha_hora + td(minutes=t.duracion_minutos)
-            if t.fecha_hora < fin_propuesto and fin_existente > fecha_hora:
+            t_inicio = _make_aware(t.fecha_hora)
+            t_fin = t_inicio + td(minutes=t.duracion_minutos)
+            if t_inicio < fp_aware and t_fin > fh_aware:
                 solapados.append(t)
         return solapados
